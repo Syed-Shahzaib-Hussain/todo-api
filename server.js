@@ -3,24 +3,12 @@
  */
 var express = require('express');
 var app = express();
-var PORT = process.env.PORT || 3001;
-var todos = [
-    {
-        id: 1,
-        description: 'Meeting with the mom',
-        completed: false
-    },
-    {
-        id:2,
-        description: 'Going for shopping',
-        completed: false
-    },
-    {
-        id:3,
-        description:'Going for date',
-        completed: true
-    }
-];
+var PORT = process.env.PORT || 3000;
+var todos = [];
+var todoNextId=1;
+var bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
 
 app.get('/todos/:id', function (req, res) {
     var todoID = parseFloat(req.params.id);
@@ -56,6 +44,15 @@ app.get('/todos', function (req, res) {
 app.get('/', function (req, res) {
     res.send("TODO API Root")
 });
+
+app.post('/todos', function (req, res) {
+    var body = req.body;
+    body.id = todoNextId++;
+    todos.push(body);
+    res.json(body);
+    console.log(todos)
+});
+
 
 app.listen(PORT, function () {
     console.log("Server is started on port: " + PORT)
