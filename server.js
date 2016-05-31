@@ -59,6 +59,16 @@ app.post('/todos', function (req, res) {
     console.log(todos)
 });
 
+app.delete('/todos/:id', function (req, res) {
+    var todoID = parseFloat(req.params.id);
+    var matchedTodo = _.findWhere(todos,{id:todoID});
+    if (!matchedTodo) {
+        return res.status(400).json({"error": "Id not found"})
+    }
+    todos = _.without(todos,matchedTodo);
+    console.log("Deleted Model is: " + JSON.stringify(matchedTodo));
+    res.json(matchedTodo);
+});
 
 app.listen(PORT, function () {
     console.log("Server is started on port: " + PORT)
