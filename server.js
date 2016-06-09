@@ -14,7 +14,18 @@ app.use(bodyParser.json());
 
 app.get('/todos/:id', function (req, res) {
     var todoID = parseFloat(req.params.id);
-    var matchedID = _.findWhere(todos, {id: todoID});
+
+    db.todos.findById(todoID).then(function (todo) {
+          if(!!todo){
+              res.json(todo.toJSON());
+              console.log(todo.toJSON());
+          } else {
+              res.status(404).send();
+          }
+    }, function (err) {
+        res.status(500).send('Server Problem')
+    });
+    //var matchedID = _.findWhere(todos, {id: todoID});
 
     // todos.forEach(function (model) {
     //     if (model.id === todoID) {
@@ -28,11 +39,11 @@ app.get('/todos/:id', function (req, res) {
     //     }
     // }
     //
-    if (matchedID) {
-        res.json(matchedID);
-    } else {
-        res.status(404).send();
-    }
+    // if (matchedID) {
+    //     res.json(matchedID);
+    // } else {
+    //     res.status(404).send();
+    // }
 
 });
 
