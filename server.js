@@ -51,22 +51,47 @@ app.get('/todos/:id', function (req, res) {
 
 
 app.get('/todos', function (req, res) {
-    var queryParams = req.query;
-    var filteredTodos = todos;
+    var query = req.query;
+    var filter= {};
 
-    if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-        filteredTodos = _.where(filteredTodos, {completed: true})
-    } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-        filteredTodos = _.where(filteredTodos, {completed: false})
+    if (query.hasOwnProperty('completed') && query.completed === "true") {
+        filter.completed = true;
+    } else if(query.hasOwnProperty('completed')&& query.completed === "false"){
+        filter.completed = false;
     }
 
-    if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-        filteredTodos = _.filter(filteredTodos, function (todo) {
-            return todo.description.toLowerCase().indexOf(queryParams.q) > -1
-        })
+    if(query.hasOwnProperty('q') && query.q.trim().length > 0 && _.isString(query.q)) {
+        filter.description = {
+            $like : "%"+query.q+"%"
+        }
+    }else if (query.hasOwnProperty('q')) {
+        res.status(400).send("Bad Query Parameter")
     }
 
-    res.json(filteredTodos)
+    db.todos.findAll({
+        where: filter
+    }).then(function (todos) {
+        res.json(todos);
+    }, function (err) {
+        res.status(500).send("Server Error")
+    });
+
+
+    // var filteredTodos = todos;
+    //
+    // if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+    //     filteredTodos = _.where(filteredTodos, {completed: true})
+    // } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+    //     filteredTodos = _.where(filteredTodos, {completed: false})
+    // }
+    //
+    // if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+    //     filteredTodos = _.filter(filteredTodos, function (todo) {
+    //         return todo.description.toLowerCase().indexOf(queryParams.q) > -1
+    //     })
+    // }
+    //
+    // res.json(filteredTodos)
 });
 
 app.get('/', function (req, res) {
