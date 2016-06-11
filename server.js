@@ -145,29 +145,54 @@ app.delete('/todos/:id', function (req, res) {
 
 app.put('/todos/:id', function (req, res) {
     var todoId = parseInt(req.params.id);
-    var matchedTodo = _.findWhere(todos, {id: todoId});
     var body = _.pick(req.body, 'description', 'completed');
-    var validObject = {};
+    var attributes = {};
 
-    if (!matchedTodo) {
-        return res.status(404).send();
+    if (body.hasOwnProperty('completed')) {
+        attributes.completed = body.completed;
     }
 
-    if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length>0 ) {
-        validObject.description = body.description;
-    } else if (body.hasOwnProperty('description')) {
-        return res.status(400).send();
+    if(body.hasOwnProperty('description')) {
+        attributes.description = body.description;
     }
 
-    if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-        validObject.completed = body.completed;
-    } else if (body.hasOwnProperty('completed')) {
-        return res.status(400).send();
-    }
+    db.todos.findById(todoId).then(function (todo) {
+        if (todo) {
+            return todo.update(attributes);
+        } else {
+            res.status(404).send("Todo not found")
+        }
+    }, function (err) {
+        res.status(500).send("Internal Server Error!")
+    }).then(function (todo) {
+        res.json(todo);
+    }, function (err) {
+        res.status(500).json(err)
+    });
 
-    _.extend(matchedTodo, validObject);
-    res.json(matchedTodo);
-    
+    // var matchedTodo = _.findWhere(todos, {id: todoId});
+    // var validObject = {};
+    //
+    // if (!matchedTodo) {
+    //     return res.status(404).send();
+    // }
+    //
+    // if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length>0 ) {
+    //     validObject.description = body.description;
+    // } else if (body.hasOwnProperty('description')) {
+    //     return res.status(400).send();
+    // }
+    //
+    // if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+    //     validObject.completed = body.completed;
+    // } else if (body.hasOwnProperty('completed')) {
+    //     return res.status(400).send();
+    // }
+    //
+    // _.extend(matchedTodo, validObject);
+    // res.json(matchedTodo);
+    //
+
 
 });
 
