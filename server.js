@@ -196,6 +196,21 @@ app.put('/todos/:id', function (req, res) {
 
 });
 
+app.post('/user', function (req,res) {
+    var body = _.pick(req.body, 'email', 'password');
+    db.users.create(body).then(function (user) {
+       res.json(user.toJSON());
+    }, function (err) {
+        var msg = err.errors[0].message ;
+        var errObj = err;
+        if (msg === "email must be unique") {
+            errObj = {
+                error: "Email already exists!"
+            }
+        }
+        res.status(400).json(err)
+    })
+});
 
 db.sequelize.sync().then(function () {
     app.listen(PORT, function () {
