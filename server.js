@@ -9,6 +9,7 @@ var todoNextId=1;
 var bodyParser = require('body-parser');
 var _ = require('underscore');
 var db = require('./db');
+var bcrypt = require('bcrypt');
 
 app.use(bodyParser.json());
 
@@ -199,13 +200,24 @@ app.put('/todos/:id', function (req, res) {
 app.post('/user', function (req,res) {
     var body = _.pick(req.body, 'email', 'password');
     db.users.create(body).then(function (user) {
-       res.json(user.toJSON());
+       res.json(user.toPublicJSON());
     }, function (err) {
         res.status(400).json(err)
     })
 });
 
-db.sequelize.sync().then(function () {
+app.post('/user/login', function (req, res) {
+    var body = _.pick(req.body, 'email', 'password');
+
+    db.users.authenticate(body).then(function (user) {
+        res.json(user.toPublicJSON());
+    }, function (err) {
+        res.status(401).send();
+    })
+   
+});
+
+db.sequelize.sync({force:true}).then(function () {
     app.listen(PORT, function () {
         console.log("Server is started on port: " + PORT)
     });
