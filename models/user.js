@@ -42,6 +42,8 @@ module.exports = function (sequelize, DataTypes) {
                 if (typeof user.email === 'string' && user.email.trim().length >0) {
                    user.email = user.email.toLowerCase();
                 }
+
+                
             }
         }, instanceMethods: {
             toPublicJSON: function () {
@@ -77,6 +79,26 @@ module.exports = function (sequelize, DataTypes) {
                     },function () {
                         return reject();
                     })
+                })
+            }, getByToken: function (token) {
+                return new Promise(function (resolve, reject) {
+                    try {
+                        var decodedJWT = jwt.verify(token, "qwerty!@#!@$#");
+                        var bytes = crypto.AES.decrypt(decodedJWT.token, 'asdfghjkl123!@#');
+                        var tokenData = JSON.parse(bytes.toString(crypto.enc.Utf8));
+                        
+                        user.findById(tokenData.id).then(function (user) {
+                            if (!user) {
+                                reject();
+                            }
+                            resolve(user)
+
+                        }, function (err) {
+                             reject();
+                        })
+                    }catch(e) {
+                        reject();
+                    }
                 })
             }
         }

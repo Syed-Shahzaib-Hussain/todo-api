@@ -17,6 +17,9 @@ module.exports = function (sequelize, DataTypes) {
             defaultValue: false,
             allowNull: false
         }
-    });
+    }
+    
+    
+    );
 
 };
