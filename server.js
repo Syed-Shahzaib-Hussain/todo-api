@@ -226,19 +226,36 @@ app.post('/user', function (req,res) {
 
 app.post('/user/login', function (req, res) {
     var body = _.pick(req.body, 'email', 'password');
+    var userInstance;
 
     db.users.authenticate(body).then(function (user) {
         var token = user.generateToken('authentication');
-        if (token) {
-            res.header('Auth', token).json(user.toPublicJSON());
-        } else {
-            res.status(401).send();
-        }
+        userInstance = user;
+        return db.token.create({
+            token: token
+        });
+        // if (token) {
+        //     res.header('Auth', token).json(user.toPublicJSON());
+        // } else {
+        //     res.status(401).send();
+        // }
 
-    }, function (err) {
+    }).then(function (tokenInstance) {
+        res.header('Auth', tokenInstance.get('token')).json(userInstance.toPublicJSON());
+    }).catch(function (err) {
         res.status(401).send();
+        console.log(err)
     })
    
+});
+
+app.delete('/user/login', middleware.requireAuthentication, function (req, res) {
+    req.token.destroy().then(function () {
+        res.status(204).send();
+    }).catch(function (err) {
+        res.status(500).send();
+        console.log(err);
+    })
 });
 
 db.sequelize.sync({force:true}).then(function () {
